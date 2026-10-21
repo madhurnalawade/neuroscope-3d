@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroScope 3D — NIfTI Upload & Validation Module</title>
+  <style>
+:root {
+  --bg-primary: #0b0f19;
+  --bg-surface: #111827;
+  --bg-card: #1f2937;
+  --border-color: #374151;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --accent-cyan: #06b6d4;
+  --accent-blue: #3b82f6;
+
+  /* Status Colors required by spec */
+  --status-gray: #6b7280;
+  --status-blue: #3b82f6;
+  --status-yellow: #f59e0b;
+  --status-green: #10b981;
+  --status-red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.neuroscope-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-icon {
+  font-size: 2.2rem;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+}
+
+.brand-subtitle {
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+}
+
+.header-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.75rem;
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 9999px;
+}
+
+.app-main-content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Medical Disclaimer Banner */
+.medical-disclaimer-banner {
+  background-color: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.disclaimer-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--status-yellow);
+}
+
+.disclaimer-text {
+  font-size: 0.875rem;
+  color: #fcd34d;
+}
+
+/* Section Header */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.section-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Upload Slots Grid (4 slots) */
+.upload-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.upload-slot-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  min-height: 250px;
+}
+
+/* Status color classes */
+.upload-slot-card.status-idle {
+  border-color: var(--border-color);
+}
+
+.upload-slot-card.status-uploading {
+  border-color: var(--status-blue);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.upload-slot-card.status-validating {
+  border-color: var(--status-yellow);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.upload-slot-card.status-valid {
+  border-color: var(--status-green);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.upload-slot-card.status-invalid {
+  border-color: var(--status-red);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+.upload-slot-card.drag-over {
+  border-color: var(--accent-cyan);
+  background-color: rgba(6, 182, 212, 0.05);
+}
+
+.slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.slot-title-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.slot-modality-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.slot-seq-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Badges */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+.badge-gray {
+  background-color: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+}
+
+.badge-blue {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.badge-yellow {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.badge-green {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.badge-red {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Dropzone Empty State */
+.dropzone-empty {
+  flex: 1;
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0.75rem;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.15);
+  transition: background-color 0.15s ease;
+}
+
+.dropzone-empty:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.drop-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+}
+
+.drop-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.drop-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.accepted-formats {
+  font-size: 0.7rem;
+  color: var(--accent-cyan);
+  margin-top: 0.75rem;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+/* File info container */
+.file-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-details {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.file-icon {
+  font-size: 1.5rem;
+}
+
+.file-texts {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filename {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filesize {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.slot-metadata-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.meta-pill {
+  font-size: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: #e5e7eb;
+}
+
+.slot-error-banner {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.error-icon {
+  color: var(--status-red);
+}
+
+.error-text {
+  font-size: 0.75rem;
+  color: #fca5a5;
+  line-height: 1.35;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-replace, .btn-remove {
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.btn-replace {
+  background-color: #374151;
+  color: #ffffff;
+}
+
+.btn-remove {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.slot-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.modality-select-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.modality-dropdown {
+  background-color: #111827;
+  color: #f9fafb;
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Action Bar */
+.validation-actions-bar {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.btn-primary-action {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary-action:disabled {
+  background: #374151;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Study Error Alert */
+.study-error-alert {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--status-red);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.alert-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f87171;
+  margin-bottom: 0.25rem;
+}
+
+.alert-msg {
+  font-size: 0.875rem;
+  color: #fecaca;
+}
+
+.alert-details {
+  margin-top: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #d1d5db;
+}
+
+/* Validation Summary Card */
+.validation-summary-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--status-green);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-top: 2rem;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.summary-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.check-icon {
+  font-size: 1.25rem;
+  color: var(--status-green);
+  font-weight: bold;
+}
+
+.summary-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.study-id-tag {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.study-id-tag code {
+  background-color: var(--bg-card);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-metric {
+  background-color: var(--bg-card);
+  padding: 0.85rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.highlight-green {
+  color: var(--status-green);
+}
+
+.summary-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-proceed-segmentation {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.85rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Segmentation Results */
+.segmentation-result-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-top: 2rem;
+}
+
+.seg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.seg-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.model-badge {
+  background-color: rgba(6, 182, 212, 0.15);
+  color: var(--accent-cyan);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.seg-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.volumetrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.volumetric-box {
+  padding: 1.25rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.wt-box {
+  background-color: rgba(59, 130, 246, 0.15);
+  border: 1px solid #3b82f6;
+}
+
+.tc-box {
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid #f59e0b;
+}
+
+.et-box {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+}
+
+.vol-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.vol-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.vol-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.voxel-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-secondary {
+  background-color: #374151;
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Spinner */
+.spinner, .spinner-sm {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-left-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.spinner-sm {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React served locally by the backend (works offline) -->
+  <script src="/static/vendor/react.production.min.js"></script>
+  <script src="/static/vendor/react-dom.production.min.js"></script>
+
+  <!-- Fallback full React engine if offline -->
+  
+<script>
+(function() {
+  if (window.React && window.ReactDOM) return;
+
+  var currentHookState = {
+    currentFiber: null,
+    hookIndex: 0
+  };
+
+  function useState(initialValue) {
+    var fiber = currentHookState.currentFiber;
+    var index = currentHookState.hookIndex++;
+    if (!fiber.hooks) fiber.hooks = [];
+    if (fiber.hooks.length <= index) {
+      fiber.hooks[index] = typeof initialValue === 'function' ? initialValue() : initialValue;
+    }
+    var setState = function(newValue) {
+      var next = typeof newValue === 'function' ? newValue(fiber.hooks[index]) : newValue;
+      if (fiber.hooks[index] !== next) {
+        fiber.hooks[index] = next;
+        scheduleRender();
+      }
+    };
+    return [fiber.hooks[index], setState];
+  }
+
+  function useRef(initialValue) {
+    var fiber = currentHookState.currentFiber;
+    var index = currentHookState.hookIndex++;
+    if (!fiber.hooks) fiber.hooks = [];
+    if (fiber.hooks.length <= index) {
+      fiber.hooks[index] = { current: initialValue };
+    }
+    return fiber.hooks[index];
+  }
+
+  function createElement(type, props) {
+    var children = [];
+    for (var i = 2; i < arguments.length; i++) {
+      var arg = arguments[i];
+      if (Array.isArray(arg)) {
+        for (var j = 0; j < arg.length; j++) {
+          if (arg[j] != null && arg[j] !== false && arg[j] !== true) children.push(arg[j]);
+        }
+      } else if (arg != null && arg !== false && arg !== true) {
+        children.push(arg);
+      }
+    }
+    props = Object.assign({}, props);
+    return { type: type, props: props, children: children };
+  }
+
+  var Fragment = function(props) { return props.children; };
+
+  var rootContainer = null;
+  var rootElement = null;
+  var appFiber = { hooks: [] };
+  var renderPending = false;
+
+  function scheduleRender() {
+    if (renderPending) return;
+    renderPending = true;
+    requestAnimationFrame(function() {
+      renderPending = false;
+      renderApp();
+    });
+  }
+
+  function renderApp() {
+    if (!rootContainer || !rootElement) return;
+    currentHookState.currentFiber = appFiber;
+    currentHookState.hookIndex = 0;
+
+    var vdom = null;
+    if (typeof rootElement.type === 'function') {
+      vdom = rootElement.type(Object.assign({}, rootElement.props, { children: rootElement.children }));
+    } else {
+      vdom = rootElement;
+    }
+
+    var dom = createDOM(vdom);
+    rootContainer.innerHTML = '';
+    if (dom) rootContainer.appendChild(dom);
+  }
+
+  function createDOM(vnode) {
+    if (vnode == null || vnode === false || vnode === true) return null;
+    if (typeof vnode === 'string' || typeof vnode === 'number') {
+      return document.createTextNode(String(vnode));
+    }
+    if (Array.isArray(vnode)) {
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < vnode.length; i++) {
+        var child = createDOM(vnode[i]);
+        if (child) frag.appendChild(child);
+      }
+      return frag;
+    }
+
+    if (typeof vnode.type === 'function') {
+      var res = vnode.type(Object.assign({}, vnode.props, { children: vnode.children }));
+      return createDOM(res);
+    }
+
+    var el = document.createElement(vnode.type);
+    var props = vnode.props || {};
+
+    for (var key in props) {
+      if (key === 'children' || key === 'key') continue;
+      if (key === 'ref' && props[key]) {
+        props[key].current = el;
+      } else if (key.startsWith('on') && typeof props[key] === 'function') {
+        var eventName = key.substring(2).toLowerCase();
+        el.addEventListener(eventName, props[key]);
+      } else if (key === 'className') {
+        el.className = props[key];
+      } else if (key === 'disabled') {
+        el.disabled = Boolean(props[key]);
+      } else if (key === 'value') {
+        el.value = props[key];
+      } else if (key === 'style' && typeof props[key] === 'object') {
+        Object.assign(el.style, props[key]);
+      } else {
+        el.setAttribute(key, props[key]);
+      }
+    }
+
+    var children = vnode.children || [];
+    for (var j = 0; j < children.length; j++) {
+      var cNode = createDOM(children[j]);
+      if (cNode) el.appendChild(cNode);
+    }
+
+    return el;
+  }
+
+  window.React = {
+    createElement: createElement,
+    Fragment: Fragment,
+    useState: useState,
+    useRef: useRef
+  };
+
+  window.ReactDOM = {
+    createRoot: function(container) {
+      rootContainer = container;
+      return {
+        render: function(element) {
+          rootElement = element;
+          renderApp();
+        }
+      };
+    },
+    render: function(element, container) {
+      rootContainer = container;
+      rootElement = element;
+      renderApp();
+    }
+  };
+})();
+</script>
+
+
+  <!-- App Bundle -->
+  <script>
+
+(function() {
+  var modules = {};
+  function define(name, fn) { modules[name] = { fn: fn }; }
+  function requireModule(name) {
+    if (name === 'react') return window.React;
+    if (name === 'react-dom') return window.ReactDOM;
+    if (name === './types' || name.indexOf('/types') !== -1) return {};
+
+    var key = name;
+    if (!modules[key]) {
+      var candidates = [
+        key,
+        key + '.tsx',
+        key + '.ts',
+        key + '.js',
+        './' + key,
+        key.replace(/^\.\//, '')
+      ];
+      for (var i = 0; i < candidates.length; i++) {
+        if (modules[candidates[i]]) {
+          key = candidates[i];
+          break;
+        }
+      }
+    }
+
+    if (!modules[key]) {
+      var keys = Object.keys(modules);
+      for (var j = 0; j < keys.length; j++) {
+        if (keys[j].indexOf(name.replace(/^\.\//, '')) !== -1) {
+          key = keys[j];
+          break;
+        }
+      }
+    }
+
+    if (!modules[key]) {
+      throw new Error('Module not found: ' + name);
+    }
+
+    if (!modules[key].cached) {
+      var mod = { exports: {} };
+      modules[key].fn(mod, mod.exports, requireModule);
+      modules[key].cached = mod.exports;
+    }
+    return modules[key].cached;
+  }
+
+  define("./utils/modalityDetector", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.detectModalityFromFilename = detectModalityFromFilename;
+const T1GD_REGEX = /(?:^|[_\-\.\s])(t1(?:ce|gd|c|post|\+c|\+gd|\-ce|\-gd|\-post|_ce|_gd|_post))(?:$|[_\-\.\s])/i;
+const FLAIR_REGEX = /(?:^|[_\-\.\s])(t2[\-_]?flair|flair)(?:$|[_\-\.\s])/i;
+const T2_REGEX = /(?:^|[_\-\.\s])(t2(?:w|_w|\-w|weighted|_weighted|\*|star)?)(?:$|[_\-\.\s])/i;
+const T1_REGEX = /(?:^|[_\-\.\s])(t1(?:w|_w|\-w|weighted|_weighted)?)(?:$|[_\-\.\s])/i;
+function detectModalityFromFilename(filename) {
+  if (!filename) return null;
+  let base = filename;
+  const lower = filename.toLowerCase();
+  for (const ext of ['.nii.gz', '.nii', '.gz']) {
+    if (lower.endsWith(ext)) {
+      base = base.slice(0, -ext.length);
+      break;
+    }
+  }
+
+  // Check specific tokens first
+  if (T1GD_REGEX.test(base)) return 'T1Gd';
+  if (FLAIR_REGEX.test(base)) return 'FLAIR';
+  if (T2_REGEX.test(base)) return 'T2';
+  if (T1_REGEX.test(base)) return 'T1';
+  return null;
+}
+  });
+
+  define("./components/MedicalDisclaimer", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MedicalDisclaimer = void 0;
+var _react = _interopRequireDefault(require("react"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+const MedicalDisclaimer = () => {
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: "medical-disclaimer-banner"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "disclaimer-badge"
+  }, "MEDICAL SAFETY & RESEARCH NOTICE"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "disclaimer-text"
+  }, /*#__PURE__*/_react.default.createElement("strong", null, "Research and teaching prototype only."), " Not for diagnosis or clinical decision-making. Use only public, de-identified research data (e.g., BraTS 2021). Structural validation does not imply clinical suitability or diagnostic accuracy."));
+};
+exports.MedicalDisclaimer = MedicalDisclaimer;
+  });
+
+  define("./components/UploadSlot", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UploadSlot = void 0;
+var _react = _interopRequireWildcard(require("react"));
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const UploadSlot = ({
+  slot,
+  allModalities,
+  usedModalities,
+  onFileSelect,
+  onFileRemove,
+  onModalityChange
+}) => {
+  const [isDragOver, setIsDragOver] = (0, _react.useState)(false);
+  const inputRef = (0, _react.useRef)(null);
+  const handleDragOver = e => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+  const handleDragLeave = e => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+  const handleDrop = e => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      onFileSelect(slot.modality, e.dataTransfer.files[0]);
+    }
+  };
+  const getStatusClass = () => {
+    switch (slot.status) {
+      case 'idle':
+        return 'status-idle';
+      // Gray
+      case 'uploading':
+        return 'status-uploading';
+      // Blue
+      case 'validating':
+        return 'status-validating';
+      // Yellow
+      case 'valid':
+        return 'status-valid';
+      // Green
+      case 'invalid':
+        return 'status-invalid';
+      // Red
+      default:
+        return 'status-idle';
+    }
+  };
+  const getStatusBadge = () => {
+    switch (slot.status) {
+      case 'idle':
+        return /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge badge-gray"
+        }, "No file selected");
+      case 'uploading':
+        return /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge badge-blue"
+        }, "Uploading ", slot.uploadProgress, "%");
+      case 'validating':
+        return /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge badge-yellow"
+        }, /*#__PURE__*/_react.default.createElement("span", {
+          className: "spinner-sm"
+        }), " Validating...");
+      case 'valid':
+        return /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge badge-green"
+        }, "\u2713 Valid NIfTI");
+      case 'invalid':
+        return /*#__PURE__*/_react.default.createElement("span", {
+          className: "badge badge-red"
+        }, "\u2717 Invalid");
+    }
+  };
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: `upload-slot-card ${getStatusClass()} ${isDragOver ? 'drag-over' : ''}`,
+    onDragOver: handleDragOver,
+    onDragLeave: handleDragLeave,
+    onDrop: handleDrop
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-header"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-title-area"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "slot-modality-label"
+  }, slot.modality), /*#__PURE__*/_react.default.createElement("span", {
+    className: "slot-seq-desc"
+  }, slot.modality === 'T1' && 'T1-Weighted Structural', slot.modality === 'T1Gd' && 'T1 Contrast-Enhanced (T1ce)', slot.modality === 'T2' && 'T2-Weighted Fluid Sensitive', slot.modality === 'FLAIR' && 'T2-FLAIR Edema Suppressed')), getStatusBadge()), /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-body"
+  }, slot.file ? /*#__PURE__*/_react.default.createElement("div", {
+    className: "file-info-container"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "file-details"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "file-icon"
+  }, "\uD83D\uDCC4"), /*#__PURE__*/_react.default.createElement("div", {
+    className: "file-texts"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "filename",
+    title: slot.filename
+  }, slot.filename), /*#__PURE__*/_react.default.createElement("span", {
+    className: "filesize"
+  }, slot.sizeMB.toFixed(2), " MB"))), slot.status === 'valid' && slot.shape && /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-metadata-pills"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "meta-pill"
+  }, "Shape: ", slot.shape.join(' × ')), slot.zooms && /*#__PURE__*/_react.default.createElement("span", {
+    className: "meta-pill"
+  }, "Spacing: ", slot.zooms.map(z => z.toFixed(1)).join(' × '), " mm"), slot.orientation && /*#__PURE__*/_react.default.createElement("span", {
+    className: "meta-pill"
+  }, "Orientation: ", slot.orientation.join(''))), slot.status === 'invalid' && slot.errorMessage && /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-error-banner"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "error-icon"
+  }, "\u26A0"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "error-text"
+  }, slot.errorMessage)), /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-actions"
+  }, /*#__PURE__*/_react.default.createElement("button", {
+    type: "button",
+    className: "btn-replace",
+    onClick: () => inputRef.current?.click()
+  }, "Replace File"), /*#__PURE__*/_react.default.createElement("button", {
+    type: "button",
+    className: "btn-remove",
+    onClick: () => onFileRemove(slot.modality)
+  }, "Remove"))) : /*#__PURE__*/_react.default.createElement("div", {
+    className: "dropzone-empty",
+    onClick: () => inputRef.current?.click()
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "drop-icon"
+  }, "\u21EA"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "drop-text"
+  }, "Drag & drop .nii or .nii.gz file here"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "drop-subtext"
+  }, "or click to browse from disk"), /*#__PURE__*/_react.default.createElement("div", {
+    className: "accepted-formats"
+  }, "Supported: .nii, .nii.gz (Max 1 GiB)")), /*#__PURE__*/_react.default.createElement("input", {
+    ref: inputRef,
+    type: "file",
+    accept: ".nii,.nii.gz,application/gzip",
+    className: "hidden-file-input",
+    onChange: e => {
+      if (e.target.files && e.target.files.length > 0) {
+        onFileSelect(slot.modality, e.target.files[0]);
+        e.target.value = '';
+      }
+    }
+  })), /*#__PURE__*/_react.default.createElement("div", {
+    className: "slot-footer"
+  }, /*#__PURE__*/_react.default.createElement("label", {
+    className: "modality-select-label"
+  }, /*#__PURE__*/_react.default.createElement("span", null, "Assigned Modality:"), /*#__PURE__*/_react.default.createElement("select", {
+    value: slot.modality,
+    onChange: e => onModalityChange(slot.modality, e.target.value),
+    className: "modality-dropdown"
+  }, allModalities.map(m => /*#__PURE__*/_react.default.createElement("option", {
+    key: m,
+    value: m
+  }, m, " ", m === 'T1Gd' ? '(T1ce)' : ''))))));
+};
+exports.UploadSlot = UploadSlot;
+  });
+
+  define("./components/ValidationSummary", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ValidationSummary = void 0;
+var _react = _interopRequireDefault(require("react"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+const ValidationSummary = ({
+  metadata,
+  studyId,
+  onProceedToSegmentation,
+  isSegmenting
+}) => {
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: "validation-summary-card"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-header"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-status-badge"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "check-icon"
+  }, "\u2713"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "summary-title"
+  }, "MRI Study Validation: PASSED")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "study-id-tag"
+  }, "Study ID: ", /*#__PURE__*/_react.default.createElement("code", null, studyId))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-grid"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Validated Sequences"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value highlight-green"
+  }, "4 / 4 Complete")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Image Dimensions (X \xD7 Y \xD7 Z)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value"
+  }, metadata.shape.join(' × '))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Voxel Spacing (dx \xD7 dy \xD7 dz)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value"
+  }, metadata.voxel_spacing_mm.map(v => v.toFixed(2)).join(' × '), " mm")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Image Orientation"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value"
+  }, metadata.orientation.join(''), " (voxel axis codes)")),/*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Total Uploaded Size"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value"
+  }, metadata.total_size_mb?.toFixed(2) || '0.00', " MB")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Affine Consistency"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value highlight-green"
+  }, "\u2713 Matching 4\xD74 Matrix")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Finite Value Check"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value highlight-green"
+  }, "\u2713 100% Finite (No NaN/Inf)")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-metric"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-label"
+  }, "Intensity Variation Check"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "metric-value highlight-green"
+  }, "\u2713 Non-Constant Anatomic Signal"))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "summary-footer"
+  }, /*#__PURE__*/_react.default.createElement("button", {
+    type: "button",
+    className: "btn-proceed-segmentation",
+    onClick: onProceedToSegmentation,
+    disabled: isSegmenting
+  }, isSegmenting ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement("span", {
+    className: "spinner-sm"
+  }), " Running MONAI SegResNet Pipeline...") : /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "Proceed to 3D Segmentation \u2192"))));
+};
+exports.ValidationSummary = ValidationSummary;
+  });
+
+  define("./components/SegmentationResult", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SegmentationResult = void 0;
+var _react = _interopRequireDefault(require("react"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+const SegmentationResult = ({
+  result,
+  onReset
+}) => {
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: "segmentation-result-card"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "seg-header"
+  }, /*#__PURE__*/_react.default.createElement("h2", {
+    className: "seg-title"
+  }, "Suspected tumour regions predicted by the model"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "model-badge"
+  }, result.model)), /*#__PURE__*/_react.default.createElement("p", {
+    className: "seg-desc"
+  }, "Estimated volumes (voxel count \xD7 voxel volume). Not a diagnosis. Input channel order:", ' ', /*#__PURE__*/_react.default.createElement("code", null, result.input_channel_order.join(' → '))), (result.warnings && result.warnings.length) ? /*#__PURE__*/_react.default.createElement("div", {
+    className: "study-error-alert"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "alert-content"
+  }, /*#__PURE__*/_react.default.createElement("h3", {
+    className: "alert-title"
+  }, "Input suitability warnings"), result.warnings.map(function (w, i) {
+    return /*#__PURE__*/_react.default.createElement("p", { className: "alert-msg", key: i }, w);
+  }))) : null, /*#__PURE__*/_react.default.createElement("div", {
+    className: "volumetrics-grid"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "volumetric-box wt-box"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-title"
+  }, "Whole Tumor (WT)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-sub"
+  }, "(Edema + Core + Enhancing)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-value"
+  }, result.whole_tumor_volume_cm3.toFixed(2), " cm\xB3"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "voxel-count"
+  }, result.sub_regions.whole_tumor.voxel_count.toLocaleString(), " voxels")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "volumetric-box tc-box"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-title"
+  }, "Tumor Core (TC)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-sub"
+  }, "(Necrotic + Enhancing)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-value"
+  }, result.tumor_core_volume_cm3.toFixed(2), " cm\xB3"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "voxel-count"
+  }, result.sub_regions.tumor_core.voxel_count.toLocaleString(), " voxels")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "volumetric-box et-box"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-title"
+  }, "Enhancing Tumor (ET)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-sub"
+  }, "(Label 4)"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "vol-value"
+  }, result.enhancing_tumor_volume_cm3.toFixed(2), " cm\xB3"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "voxel-count"
+  }, result.sub_regions.enhancing_tumor.voxel_count.toLocaleString(), " voxels"))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "seg-footer"
+  }, /*#__PURE__*/_react.default.createElement("a", {
+    className: "btn-primary-action",
+    href: result.viewer_url,
+    style: { marginRight: "0.75rem", textDecoration: "none", display: "inline-block", width: "auto" }
+  }, "Open 3D & slice viewer"), /*#__PURE__*/_react.default.createElement("a", {
+    className: "btn-secondary",
+    href: result.report_url,
+    target: "_blank",
+    style: { marginRight: "0.75rem", textDecoration: "none" }
+  }, "Report"), /*#__PURE__*/_react.default.createElement("a", {
+    className: "btn-secondary",
+    href: result.prediction_url,
+    style: { marginRight: "0.75rem", textDecoration: "none" }
+  }, "Download label map (NIfTI)"), /*#__PURE__*/_react.default.createElement("button", {
+    type: "button",
+    className: "btn-secondary",
+    onClick: onReset
+  }, "Upload Another MRI Study")));
+};
+exports.SegmentationResult = SegmentationResult;
+  });
+
+  define("./App", function(module, exports, require) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.App = void 0;
+var _react = _interopRequireWildcard(require("react"));
+var _modalityDetector = require("./utils/modalityDetector");
+var _UploadSlot = require("./components/UploadSlot");
+var _ValidationSummary = require("./components/ValidationSummary");
+var _MedicalDisclaimer = require("./components/MedicalDisclaimer");
+var _SegmentationResult = require("./components/SegmentationResult");
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const ALL_MODALITIES = ['T1', 'T1Gd', 'T2', 'FLAIR'];
+const App = () => {
+  const [slots, setSlots] = (0, _react.useState)({
+    T1: {
+      modality: 'T1',
+      file: null,
+      filename: '',
+      sizeMB: 0,
+      status: 'idle',
+      uploadProgress: 0,
+      errorMessage: null
+    },
+    T1Gd: {
+      modality: 'T1Gd',
+      file: null,
+      filename: '',
+      sizeMB: 0,
+      status: 'idle',
+      uploadProgress: 0,
+      errorMessage: null
+    },
+    T2: {
+      modality: 'T2',
+      file: null,
+      filename: '',
+      sizeMB: 0,
+      status: 'idle',
+      uploadProgress: 0,
+      errorMessage: null
+    },
+    FLAIR: {
+      modality: 'FLAIR',
+      file: null,
+      filename: '',
+      sizeMB: 0,
+      status: 'idle',
+      uploadProgress: 0,
+      errorMessage: null
+    }
+  });
+  const [isValidatingStudy, setIsValidatingStudy] = (0, _react.useState)(false);
+  const [studyValidationResult, setStudyValidationResult] = (0, _react.useState)(null);
+  const [studyErrorMessage, setStudyErrorMessage] = (0, _react.useState)(null);
+  const [studyErrorDetails, setStudyErrorDetails] = (0, _react.useState)(null);
+  const [isSegmenting, setIsSegmenting] = (0, _react.useState)(false);
+  const [segmentationResult, setSegmentationResult] = (0, _react.useState)(null);
+
+  // Validate single file live with the backend
+  const validateSingleFileWithBackend = async (modality, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('modality', modality);
+    try {
+      const res = await fetch('/api/upload/validate-single', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setSlots(prev => ({
+          ...prev,
+          [modality]: {
+            ...prev[modality],
+            status: 'valid',
+            errorMessage: null,
+            shape: data.shape,
+            zooms: data.zooms,
+            orientation: data.orientation
+          }
+        }));
+      } else {
+        setSlots(prev => ({
+          ...prev,
+          [modality]: {
+            ...prev[modality],
+            status: 'invalid',
+            errorMessage: data.message || 'Invalid NIfTI file format.'
+          }
+        }));
+      }
+    } catch (err) {
+      setSlots(prev => ({
+        ...prev,
+        [modality]: {
+          ...prev[modality],
+          status: 'invalid',
+          errorMessage: 'Server communication error during file validation.'
+        }
+      }));
+    }
+  };
+  const handleFileSelect = (targetModality, file) => {
+    // Reset previous study results
+    setStudyValidationResult(null);
+    setStudyErrorMessage(null);
+    setSegmentationResult(null);
+
+    // Automatic modality recognition
+    const detected = (0, _modalityDetector.detectModalityFromFilename)(file.name);
+    let assignedModality = targetModality;
+    if (detected && detected !== targetModality) {
+      assignedModality = detected;
+    }
+    const sizeMB = file.size / (1024 * 1024);
+    setSlots(prev => ({
+      ...prev,
+      [assignedModality]: {
+        modality: assignedModality,
+        file: file,
+        filename: file.name,
+        sizeMB: sizeMB,
+        status: 'validating',
+        uploadProgress: 100,
+        errorMessage: null
+      }
+    }));
+    validateSingleFileWithBackend(assignedModality, file);
+  };
+  const handleFileRemove = modality => {
+    setStudyValidationResult(null);
+    setStudyErrorMessage(null);
+    setSegmentationResult(null);
+    setSlots(prev => ({
+      ...prev,
+      [modality]: {
+        modality,
+        file: null,
+        filename: '',
+        sizeMB: 0,
+        status: 'idle',
+        uploadProgress: 0,
+        errorMessage: null
+      }
+    }));
+  };
+  const handleModalityChange = (oldMod, newMod) => {
+    if (oldMod === newMod) return;
+    setStudyValidationResult(null);
+    setStudyErrorMessage(null);
+    const oldSlot = slots[oldMod];
+    const targetSlot = slots[newMod];
+
+    // Swap files between the two slots
+    setSlots(prev => ({
+      ...prev,
+      [oldMod]: {
+        ...targetSlot,
+        modality: oldMod
+      },
+      [newMod]: {
+        ...oldSlot,
+        modality: newMod
+      }
+    }));
+  };
+
+  // Full 4-sequence study validation
+  const handleValidateStudy = async () => {
+    // Verify all 4 slots have files
+    const missing = [];
+    ALL_MODALITIES.forEach(m => {
+      if (!slots[m].file) missing.push(m);
+    });
+    if (missing.length > 0) {
+      setStudyErrorMessage(`Please upload all 4 required MRI sequences before validating. Missing: ${missing.join(', ')}.`);
+      return;
+    }
+    setIsValidatingStudy(true);
+    setStudyErrorMessage(null);
+    setStudyErrorDetails(null);
+    setStudyValidationResult(null);
+    const formData = new FormData();
+    formData.append('t1', slots.T1.file);
+    formData.append('t1gd', slots.T1Gd.file);
+    formData.append('t2', slots.T2.file);
+    formData.append('flair', slots.FLAIR.file);
+    try {
+      const res = await fetch('/api/upload/validate', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setStudyValidationResult(data);
+        // Mark all slots as valid
+        setSlots(prev => {
+          const updated = {
+            ...prev
+          };
+          ALL_MODALITIES.forEach(m => {
+            updated[m] = {
+              ...updated[m],
+              status: 'valid',
+              errorMessage: null
+            };
+          });
+          return updated;
+        });
+      } else {
+        setStudyErrorMessage(data.message || 'Study validation failed.');
+        setStudyErrorDetails(data.details || null);
+        // If an affected modality is identified, flag its slot
+        const badMod = data.details?.modality;
+        if (badMod && slots[badMod]) {
+          setSlots(prev => ({
+            ...prev,
+            [badMod]: {
+              ...prev[badMod],
+              status: 'invalid',
+              errorMessage: data.message
+            }
+          }));
+        }
+      }
+    } catch (err) {
+      setStudyErrorMessage('Failed communicating with upload validation server.');
+    } finally {
+      setIsValidatingStudy(false);
+    }
+  };
+
+  // Segmentation execution
+  const handleProceedToSegmentation = async () => {
+    if (!studyValidationResult || !studyValidationResult.study_id) return;
+    setIsSegmenting(true);
+    try {
+      const res = await fetch('/api/segmentation/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          study_id: studyValidationResult.study_id
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setSegmentationResult(data);
+      } else {
+        setStudyErrorMessage(data.message || 'Segmentation pipeline error.');
+      }
+    } catch (e) {
+      setStudyErrorMessage('Network error while running segmentation.');
+    } finally {
+      setIsSegmenting(false);
+    }
+  };
+  const handleReset = () => {
+    setStudyValidationResult(null);
+    setStudyErrorMessage(null);
+    setSegmentationResult(null);
+    setSlots({
+      T1: {
+        modality: 'T1',
+        file: null,
+        filename: '',
+        sizeMB: 0,
+        status: 'idle',
+        uploadProgress: 0,
+        errorMessage: null
+      },
+      T1Gd: {
+        modality: 'T1Gd',
+        file: null,
+        filename: '',
+        sizeMB: 0,
+        status: 'idle',
+        uploadProgress: 0,
+        errorMessage: null
+      },
+      T2: {
+        modality: 'T2',
+        file: null,
+        filename: '',
+        sizeMB: 0,
+        status: 'idle',
+        uploadProgress: 0,
+        errorMessage: null
+      },
+      FLAIR: {
+        modality: 'FLAIR',
+        file: null,
+        filename: '',
+        sizeMB: 0,
+        status: 'idle',
+        uploadProgress: 0,
+        errorMessage: null
+      }
+    });
+  };
+  const allFilesSelected = ALL_MODALITIES.every(m => slots[m].file !== null);
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: "neuroscope-app"
+  }, /*#__PURE__*/_react.default.createElement("header", {
+    className: "app-header"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "header-brand"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "brand-icon"
+  }, "\uD83E\uDDE0"), /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement("h1", {
+    className: "brand-title"
+  }, "NeuroScope 3D"), /*#__PURE__*/_react.default.createElement("span", {
+    className: "brand-subtitle"
+  }, "NIfTI Upload & Multi-Parametric MRI Validation Module"))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "header-badge"
+  }, "BraTS 2021 Co-Registration Standard")), /*#__PURE__*/_react.default.createElement("main", {
+    className: "app-main-content"
+  }, /*#__PURE__*/_react.default.createElement(_MedicalDisclaimer.MedicalDisclaimer, null), /*#__PURE__*/_react.default.createElement("section", {
+    className: "slots-section"
+  }, /*#__PURE__*/_react.default.createElement("div", {
+    className: "section-header"
+  }, /*#__PURE__*/_react.default.createElement("h2", {
+    className: "section-title"
+  }, "Required Multi-Parametric MRI Sequences"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "section-description"
+  }, "Upload exactly four co-registered brain MRI sequences (.nii or .nii.gz). Automatic modality recognition identifies sequences by standard token boundaries. All scans must share matching 3D dimensions and spatial affines.")), /*#__PURE__*/_react.default.createElement("div", {
+    className: "upload-slots-grid"
+  }, ALL_MODALITIES.map(modality => /*#__PURE__*/_react.default.createElement(_UploadSlot.UploadSlot, {
+    key: modality,
+    slot: slots[modality],
+    allModalities: ALL_MODALITIES,
+    usedModalities: slots,
+    onFileSelect: handleFileSelect,
+    onFileRemove: handleFileRemove,
+    onModalityChange: handleModalityChange
+  }))), /*#__PURE__*/_react.default.createElement("div", {
+    className: "validation-actions-bar"
+  }, /*#__PURE__*/_react.default.createElement("button", {
+    type: "button",
+    className: "btn-primary-action",
+    onClick: handleValidateStudy,
+    disabled: !allFilesSelected || isValidatingStudy
+  }, isValidatingStudy ? /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, /*#__PURE__*/_react.default.createElement("span", {
+    className: "spinner"
+  }), " Validating Study Consistency...") : /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, "Validate 4-Sequence Study"))), studyErrorMessage && /*#__PURE__*/_react.default.createElement("div", {
+    className: "study-error-alert"
+  }, /*#__PURE__*/_react.default.createElement("span", {
+    className: "alert-icon"
+  }, "\u26A0"), /*#__PURE__*/_react.default.createElement("div", {
+    className: "alert-content"
+  }, /*#__PURE__*/_react.default.createElement("h3", {
+    className: "alert-title"
+  }, "Study Validation Rejected"), /*#__PURE__*/_react.default.createElement("p", {
+    className: "alert-msg"
+  }, studyErrorMessage), studyErrorDetails && /*#__PURE__*/_react.default.createElement("div", {
+    className: "alert-details"
+  }, /*#__PURE__*/_react.default.createElement("code", null, JSON.stringify(studyErrorDetails, null, 2)))))), studyValidationResult && !segmentationResult && /*#__PURE__*/_react.default.createElement("section", {
+    className: "summary-section"
+  }, /*#__PURE__*/_react.default.createElement(_ValidationSummary.ValidationSummary, {
+    metadata: studyValidationResult.metadata,
+    studyId: studyValidationResult.study_id,
+    onProceedToSegmentation: handleProceedToSegmentation,
+    isSegmenting: isSegmenting
+  })), segmentationResult && /*#__PURE__*/_react.default.createElement("section", {
+    className: "segmentation-section"
+  }, /*#__PURE__*/_react.default.createElement(_SegmentationResult.SegmentationResult, {
+    result: segmentationResult,
+    onReset: handleReset
+  }))), /*#__PURE__*/_react.default.createElement("footer", {
+    className: "app-footer"
+  }, /*#__PURE__*/_react.default.createElement("p", null, "\xA9 2026 NeuroScope 3D. Research and teaching prototype. Not for clinical diagnosis.")));
+};
+exports.App = App;
+  });
+
+  window.addEventListener('DOMContentLoaded', function() {
+    var App = requireModule('./App').App;
+    var container = document.getElementById('root');
+    if (window.ReactDOM && window.ReactDOM.createRoot) {
+      var root = window.ReactDOM.createRoot(container);
+      root.render(window.React.createElement(App, null));
+    } else if (window.ReactDOM && window.ReactDOM.render) {
+      window.ReactDOM.render(window.React.createElement(App, null), container);
+    }
+  });
+})();
+
+  </script>
+</body>
+</html>

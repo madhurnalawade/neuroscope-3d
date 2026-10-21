@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voxels</title>
+  <meta name="description" content="Research and teaching prototype: suspected tumour regions predicted by a pretrained model on brain MRI, estimated volumes, 3D and linked-slice viewer.">
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="safety" role="note">
+    <span>Research &amp; teaching prototype</span><span>Not a diagnosis</span><span>Not clinically validated</span><span>Uploads deleted within 24 h</span>
+  </div>
+
+  <header class="nav">
+    <a class="wordmark" href="/">Vox<em>els</em></a>
+    <ul>
+      <li><a href="/analyse">Analyse</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#evaluation">Evaluation</a></li>
+      <li><a href="#limits">Limits</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+    </ul>
+    <span class="status mono" id="status"><i class="dot"></i>checking…</span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">Brain MRI &nbsp;/&nbsp; segmentation instrument &nbsp;/&nbsp; built in 24 hours</p>
+        <h1>A second look,<br><em>in three dimensions.</em></h1>
+        <p class="lede">
+          Drop one MRI study. Voxels runs a pretrained MONAI SegResNet over T1, T1Gd, T2 and FLAIR,
+          outlines the <strong>suspected tumour regions predicted by the model</strong>, estimates each in
+          millilitres, and lets you walk through them slice by slice and in 3D. It takes under a minute, and the scan
+          never leaves this machine.
+        </p>
+        <div class="cta">
+          <a class="btn" href="/analyse">Analyse a study <span class="arr">→</span></a>        </div>
+        <dl class="figures" id="figures">
+          <div><dt>Whole-tumour Dice</dt><dd id="fig-wt">—</dd><small id="fig-wt-note">held-out cases</small></div>
+          <div><dt>Upload → report</dt><dd>&lt;30<span class="unit">s</span></dd><small>on a 4 GB laptop GPU</small></div>
+          <div><dt>Leaves the machine</dt><dd>0<span class="unit">B</span></dd><small>no third-party services</small></div>
+        </dl>
+      </div>
+
+      <figure class="plate" aria-label="Axial sweep through a public sample case with the model's predicted contours">
+        <div class="plate-frame">
+          <canvas id="plate" width="300" height="381"></canvas>
+          <div class="ruler" aria-hidden="true"></div>
+          <div class="plate-read mono" id="plate-read" aria-hidden="true"></div>
+        </div>
+        <figcaption>
+          <span class="mono">Plate 1.</span> <span id="plate-case">BRATS_001</span>, FLAIR, axial sweep (radiological: patient right on the left).
+          Contours are the model's prediction:
+          <span class="nowrap"><i class="swatch s-ncr"></i>NCR</span>
+          <span class="nowrap"><i class="swatch s-ed"></i>ED</span>
+          <span class="nowrap"><i class="swatch s-et"></i>ET</span>.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="method" class="block">
+      <header class="block-head">
+        <span class="num">01</span>
+        <h2>Method</h2>
+        <p>Every step below is the code path the judges' case runs through. Nothing is looked up from a stored dataset.</p>
+      </header>
+      <ol class="flow">
+        <li><span class="mono">i</span><h3>Input</h3><p>T1, T1Gd, T2, FLAIR on one grid. A single 4-channel file is split on the server.</p></li>
+        <li><span class="mono">ii</span><h3>Checks</h3><p>Readable, 3D, finite, non-constant, ≤ 1 GB, matching shape and affine, skull-stripped heuristic.</p></li>
+        <li><span class="mono">iii</span><h3>Model</h3><p>Reorient to RAS, resample to 1 mm, z-score per channel; SegResNet (MONAI, Apache-2.0) outputs TC, WT, ET.</p></li>
+        <li><span class="mono">iv</span><h3>Labels</h3><p>Inverted back to the uploaded grid and affine; written as BraTS codes 1 · 2 · 4.</p></li>
+        <li><span class="mono">v</span><h3>Volume</h3><p class="formula">V = N × Δx·Δy·Δz<br>mL = mm³ ÷ 1000</p></li>
+        <li><span class="mono">vi</span><h3>Output</h3><p>NIfTI label map, 3D + linked-slice viewer, HTML/PDF report with provenance.</p></li>
+      </ol>
+      <table class="codes">
+        <thead><tr><th>Code</th><th>Region</th><th>Grouped into</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td><i class="swatch s-ncr"></i>NCR — necrotic core</td><td class="mono">TC, WT</td></tr>
+          <tr><td class="mono">2</td><td><i class="swatch s-ed"></i>ED — oedema</td><td class="mono">WT</td></tr>
+          <tr><td class="mono">4</td><td><i class="swatch s-et"></i>ET — enhancing</td><td class="mono">ET, TC, WT</td></tr>
+        </tbody>
+      </table>
+      <p class="aside">Codes are category identifiers, not severity scores.</p>
+    </section>
+
+    <section id="evaluation" class="block">
+      <header class="block-head">
+        <span class="num">02</span>
+        <h2>Evaluation</h2>
+        <p id="eval-intro">Dice and sensitivity per region on held-out labelled cases.</p>
+      </header>
+      <div class="eval-grid">
+        <table class="eval" id="eval-table"><tbody><tr><td>Loading…</td></tr></tbody></table>
+        <div class="disclosure">
+          <p class="eyebrow">Read this before the numbers</p>
+          <p id="eval-disclosure"></p>
+          <p class="eyebrow" style="margin-top:18px">Cases</p>
+          <p id="eval-cases" class="mono small"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="limits" class="block">
+      <header class="block-head">
+        <span class="num">03</span>
+        <h2>Limits</h2>
+        <p>Where this model can be wrong, and what it will never claim.</p>
+      </header>
+      <ol class="limits" id="limits-list"></ol>
+      <p class="never">No diagnosis · no grading · no genetics · no prognosis · no treatment advice · no surgical or radiotherapy planning · no clinical validation or regulatory approval.</p>
+    </section>
+
+    <section id="privacy" class="block">
+      <header class="block-head">
+        <span class="num">04</span>
+        <h2>Privacy and Security</h2>
+        <p>Every upload is deleted automatically. This is what the server holds right now, and when each item goes.</p>
+      </header>
+
+      <div class="privacy-grid">
+        <figure class="countdown" aria-live="off">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="track" cx="60" cy="60" r="52"></circle>
+            <circle class="sweep" id="pv-ring" cx="60" cy="60" r="52" pathLength="1000"></circle>
+            <g class="ticks" id="pv-ticks"></g>
+          </svg>
+          <div class="countdown-read">
+            <span class="eyebrow" id="pv-clock-label">Next deletion in</span>
+            <time class="clock mono" id="pv-clock">--:--:--</time>
+            <small id="pv-clock-note">loading…</small>
+          </div>
+        </figure>
+
+        <div class="retention">
+          <p class="eyebrow">Stored on this server</p>
+          <div class="retention-scroll">
+            <table class="eval pv-table">
+              <thead><tr><th>Ref</th><th>What</th><th>Files</th><th>Size</th><th>Deleted in</th></tr></thead>
+              <tbody id="pv-list"><tr><td colspan="5">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <p class="aside" id="pv-mine-note">File names are shown only for studies uploaded from this browser; other uploads appear as a count and size.</p>
+        </div>
+      </div>
+
+      <ol class="pv-facts">
+        <li><b>Where.</b> Uploads and everything made from them (sequences, label map, surfaces, report data) sit in one folder per study in the server's temporary directory, on the machine running Voxels.</li>
+        <li><b>When.</b> Each study is deleted <span id="pv-ttl">23</span> h after upload. The server checks at startup, on every access and every <span id="pv-sweep">10</span> minutes, so nothing outlives 24 h.</li>
+        <li><b>What leaves.</b> No cloud, analytics or AI-service code was found by the repository's leak audit (<span class="mono">scripts/audit_no_leaks.py</span>). The model runs on this machine.</li>
+        <li><b>Who can open a study.</b> Only someone holding its link: each study ID is 128 random bits. There are no accounts, so do not share links and upload only public, de-identified research data.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div>
+      <a class="wordmark" href="/">Vox<em>els</em></a>
+      <p id="disclaimer-full">Research and teaching prototype. Outputs are suspected tumour regions predicted by the model and estimated volumes. Not a diagnosis; not clinically validated; not for clinical use.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Model</p>
+      <p>MONAI <span class="mono">brats_mri_segmentation</span> v0.5.4, SegResNet (Myronenko, 2018). Apache-2.0.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Data</p>
+      <p>Medical Segmentation Decathlon (Antonelli et al., 2022), derived from BraTS (Menze et al., 2015; Bakas et al., 2017, 2018). Public, de-identified.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Elsewhere</p>
+      <p><a href="/docs">API docs</a> · <a href="/backup">Precomputed sample</a></p>
+    </div>
+  </footer>
+
+  <script src="/static/app.js" type="module"></script>
+</body>
+</html>

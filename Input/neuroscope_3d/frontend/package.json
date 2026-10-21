@@ -1,0 +1,10 @@
+{
+  "name": "neuroscope-3d-frontend",
+  "version": "1.0.0",
+  "description": "NeuroScope 3D NIfTI Upload & Validation React Frontend",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

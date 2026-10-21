@@ -1,0 +1,10 @@
+{
+  "description": "This web application streamlines the design process by providing users with modern, high-fidelity UI templates, enhancing productivity for designers and developers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -1,0 +1,14 @@
+
+.git
+.venv
+**/__pycache__
+**/node_modules
+.env
+data
+dataset
+demo_cases
+backup_case
+uploads
+neuroscope_uploads
+*.nii
+*.nii.gz

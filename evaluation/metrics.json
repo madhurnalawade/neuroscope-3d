@@ -1,0 +1,621 @@
+{
+  "generated_utc": "2026-10-17T00:18:40+00:00",
+  "dataset": "Medical Segmentation Decathlon Task01_BrainTumour (labelled training list), labels converted to BraTS codes",
+  "n_cases": 20,
+  "case_ids": [
+    "BRATS_013",
+    "BRATS_038",
+    "BRATS_048",
+    "BRATS_084",
+    "BRATS_086",
+    "BRATS_145",
+    "BRATS_169",
+    "BRATS_172",
+    "BRATS_175",
+    "BRATS_220",
+    "BRATS_300",
+    "BRATS_305",
+    "BRATS_315",
+    "BRATS_337",
+    "BRATS_346",
+    "BRATS_377",
+    "BRATS_395",
+    "BRATS_397",
+    "BRATS_413",
+    "BRATS_433"
+  ],
+  "sampling": {
+    "seed": 2026,
+    "n_available": 484
+  },
+  "summary": {
+    "WT": {
+      "dice_mean": 0.8852081245014999,
+      "dice_sd": 0.10774402079906818,
+      "dice_median": 0.9269875548340138,
+      "sensitivity_mean": 0.9318749169246665,
+      "sensitivity_sd": 0.062149172527521016,
+      "sensitivity_undefined_cases": 0,
+      "hd95_median_mm": 4.621320343559642,
+      "hd95_undefined_cases": 0
+    },
+    "TC": {
+      "dice_mean": 0.8505987153810869,
+      "dice_sd": 0.21164290460890342,
+      "dice_median": 0.9360419074183093,
+      "sensitivity_mean": 0.9115172687492125,
+      "sensitivity_sd": 0.09189901165235677,
+      "sensitivity_undefined_cases": 0,
+      "hd95_median_mm": 2.224744871391589,
+      "hd95_undefined_cases": 0
+    },
+    "ET": {
+      "dice_mean": 0.7637985443229909,
+      "dice_sd": 0.2742289618495177,
+      "dice_median": 0.857939879522067,
+      "sensitivity_mean": 0.8572869118196204,
+      "sensitivity_sd": 0.1890190590055543,
+      "sensitivity_undefined_cases": 1,
+      "hd95_median_mm": 1.7320508075688772,
+      "hd95_undefined_cases": 1
+    }
+  },
+  "per_case": {
+    "BRATS_013": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9261173608999695,
+          "sensitivity": 0.9394710463412753,
+          "hd95_mm": 1.7454482671903602,
+          "pred_voxels": 13343,
+          "ref_voxels": 12969
+        },
+        "TC": {
+          "dice": 0.9521671222178837,
+          "sensitivity": 0.9777465918203689,
+          "hd95_mm": 1.0,
+          "pred_voxels": 5256,
+          "ref_voxels": 4988
+        },
+        "ET": {
+          "dice": 0.9291516709511568,
+          "sensitivity": 0.9657973492945703,
+          "hd95_mm": 2.23606797749979,
+          "pred_voxels": 5047,
+          "ref_voxels": 4678
+        }
+      },
+      "seconds": 6.55,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_038": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9418847570934782,
+          "sensitivity": 0.9857421124464998,
+          "hd95_mm": 3.4641016151377544,
+          "pred_voxels": 164990,
+          "ref_voxels": 150934
+        },
+        "TC": {
+          "dice": 0.9412074206875048,
+          "sensitivity": 0.9358820337932103,
+          "hd95_mm": 2.449489742783178,
+          "pred_voxels": 102048,
+          "ref_voxels": 103216
+        },
+        "ET": {
+          "dice": 0.9270562010103824,
+          "sensitivity": 0.93946202104281,
+          "hd95_mm": 1.7320508075688772,
+          "pred_voxels": 83633,
+          "ref_voxels": 81453
+        }
+      },
+      "seconds": 6.18,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_048": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9399392023579023,
+          "sensitivity": 0.9048394030584045,
+          "hd95_mm": 3.0,
+          "pred_voxels": 150669,
+          "ref_voxels": 162830
+        },
+        "TC": {
+          "dice": 0.9626214303799155,
+          "sensitivity": 0.947209692646596,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 36911,
+          "ref_voxels": 38132
+        },
+        "ET": {
+          "dice": 0.9363915060269971,
+          "sensitivity": 0.9086095190630451,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 30199,
+          "ref_voxels": 32104
+        }
+      },
+      "seconds": 6.21,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_084": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8423225096312603,
+          "sensitivity": 0.7546046839232259,
+          "hd95_mm": 60.92454230034278,
+          "pred_voxels": 22481,
+          "ref_voxels": 28395
+        },
+        "TC": {
+          "dice": 0.8784817875726967,
+          "sensitivity": 0.8103529411764706,
+          "hd95_mm": 3.7076308589464535,
+          "pred_voxels": 8977,
+          "ref_voxels": 10625
+        },
+        "ET": {
+          "dice": 0.7724587183760037,
+          "sensitivity": 0.7964698531708841,
+          "hd95_mm": 2.449489742783178,
+          "pred_voxels": 6800,
+          "ref_voxels": 6402
+        }
+      },
+      "seconds": 5.9,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_086": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9131567179986037,
+          "sensitivity": 0.9398015453305021,
+          "hd95_mm": 4.242640687119285,
+          "pred_voxels": 131085,
+          "ref_voxels": 123857
+        },
+        "TC": {
+          "dice": 0.768685197068459,
+          "sensitivity": 0.9085102985789558,
+          "hd95_mm": 3.806243040080456,
+          "pred_voxels": 17083,
+          "ref_voxels": 12526
+        },
+        "ET": {
+          "dice": 0.6794480905379567,
+          "sensitivity": 0.893085178644206,
+          "hd95_mm": 5.0990195135927845,
+          "pred_voxels": 11990,
+          "ref_voxels": 7361
+        }
+      },
+      "seconds": 6.23,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_145": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9444337442218799,
+          "sensitivity": 0.9609524276125618,
+          "hd95_mm": 7.810249675906654,
+          "pred_voxels": 105625,
+          "ref_voxels": 102055
+        },
+        "TC": {
+          "dice": 0.9697342262216176,
+          "sensitivity": 0.9822994779935875,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 77434,
+          "ref_voxels": 75478
+        },
+        "ET": {
+          "dice": 0.9317903375795238,
+          "sensitivity": 0.9521266968325792,
+          "hd95_mm": 1.0,
+          "pred_voxels": 34597,
+          "ref_voxels": 33150
+        }
+      },
+      "seconds": 6.22,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_169": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8311425094186842,
+          "sensitivity": 0.9804946689241751,
+          "hd95_mm": 17.0,
+          "pred_voxels": 118827,
+          "ref_voxels": 87412
+        },
+        "TC": {
+          "dice": 0.5901311209097239,
+          "sensitivity": 0.9608898965566105,
+          "hd95_mm": 18.138357147217054,
+          "pred_voxels": 95546,
+          "ref_voxels": 42342
+        },
+        "ET": {
+          "dice": 0.009433962264150943,
+          "sensitivity": 0.11538461538461539,
+          "hd95_mm": 26.51439033695811,
+          "pred_voxels": 610,
+          "ref_voxels": 26
+        }
+      },
+      "seconds": 6.16,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_172": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9692129850572153,
+          "sensitivity": 0.9522039926093661,
+          "hd95_mm": 1.7320508075688772,
+          "pred_voxels": 138913,
+          "ref_voxels": 143966
+        },
+        "TC": {
+          "dice": 0.9498259404828748,
+          "sensitivity": 0.9431324011507326,
+          "hd95_mm": 2.0,
+          "pred_voxels": 44209,
+          "ref_voxels": 44841
+        },
+        "ET": {
+          "dice": 0.9434496286955303,
+          "sensitivity": 0.9435553936268603,
+          "hd95_mm": 1.0,
+          "pred_voxels": 35689,
+          "ref_voxels": 35681
+        }
+      },
+      "seconds": 6.24,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_175": {
+      "metrics": {
+        "WT": {
+          "dice": 0.4671938088829071,
+          "sensitivity": 0.9826610049539986,
+          "hd95_mm": 10.816653826391969,
+          "pred_voxels": 27186,
+          "ref_voxels": 8478
+        },
+        "TC": {
+          "dice": 0.06138209356783419,
+          "sensitivity": 0.9166666666666666,
+          "hd95_mm": 11.874342087037917,
+          "pred_voxels": 19399,
+          "ref_voxels": 672
+        },
+        "ET": {
+          "dice": 0.0,
+          "sensitivity": null,
+          "hd95_mm": null,
+          "pred_voxels": 1845,
+          "ref_voxels": 0
+        }
+      },
+      "seconds": 4.61,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_220": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8767129355354879,
+          "sensitivity": 0.8190178654556364,
+          "hd95_mm": 15.524174696260024,
+          "pred_voxels": 83944,
+          "ref_voxels": 96667
+        },
+        "TC": {
+          "dice": 0.6726275631855031,
+          "sensitivity": 0.5733739837398374,
+          "hd95_mm": 26.139039421282977,
+          "pred_voxels": 3468,
+          "ref_voxels": 4920
+        },
+        "ET": {
+          "dice": 0.8549060542797495,
+          "sensitivity": 0.8876445086705202,
+          "hd95_mm": 21.96008241696039,
+          "pred_voxels": 2980,
+          "ref_voxels": 2768
+        }
+      },
+      "seconds": 6.09,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_300": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9334835524852869,
+          "sensitivity": 0.9045464339581987,
+          "hd95_mm": 5.0,
+          "pred_voxels": 130598,
+          "ref_voxels": 139230
+        },
+        "TC": {
+          "dice": 0.9158828892248393,
+          "sensitivity": 0.8862732836020905,
+          "hd95_mm": 3.1622776601683795,
+          "pred_voxels": 41879,
+          "ref_voxels": 44774
+        },
+        "ET": {
+          "dice": 0.8161129718475604,
+          "sensitivity": 0.903475367779693,
+          "hd95_mm": 2.0,
+          "pred_voxels": 30288,
+          "ref_voxels": 24947
+        }
+      },
+      "seconds": 6.31,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_305": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9080231438510049,
+          "sensitivity": 0.9493560674768728,
+          "hd95_mm": 15.076453189884669,
+          "pred_voxels": 60149,
+          "ref_voxels": 55130
+        },
+        "TC": {
+          "dice": 0.9083815164762845,
+          "sensitivity": 0.9310976197359545,
+          "hd95_mm": 3.0,
+          "pred_voxels": 10896,
+          "ref_voxels": 10377
+        },
+        "ET": {
+          "dice": 0.7771656796584493,
+          "sensitivity": 0.9773120886733634,
+          "hd95_mm": 3.3166247903554,
+          "pred_voxels": 8748,
+          "ref_voxels": 5774
+        }
+      },
+      "seconds": 6.15,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_315": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8145924786453057,
+          "sensitivity": 0.8835802268164307,
+          "hd95_mm": 5.196152422706632,
+          "pred_voxels": 43101,
+          "ref_voxels": 36858
+        },
+        "TC": {
+          "dice": 0.8824229115198097,
+          "sensitivity": 0.8505909331451755,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 5260,
+          "ref_voxels": 5669
+        },
+        "ET": {
+          "dice": 0.7654885096089236,
+          "sensitivity": 0.9483849483849484,
+          "hd95_mm": 1.7320508075688772,
+          "pred_voxels": 4438,
+          "ref_voxels": 3003
+        }
+      },
+      "seconds": 6.1,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_337": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8386385124487866,
+          "sensitivity": 0.8531352694434796,
+          "hd95_mm": 5.0,
+          "pred_voxels": 38723,
+          "ref_voxels": 37429
+        },
+        "TC": {
+          "dice": 0.8758696924377398,
+          "sensitivity": 0.8739942901635089,
+          "hd95_mm": 2.449489742783178,
+          "pred_voxels": 7673,
+          "ref_voxels": 7706
+        },
+        "ET": {
+          "dice": 0.6200451176281019,
+          "sensitivity": 0.7332317073170732,
+          "hd95_mm": 2.449489742783178,
+          "pred_voxels": 3582,
+          "ref_voxels": 2624
+        }
+      },
+      "seconds": 6.19,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_346": {
+      "metrics": {
+        "WT": {
+          "dice": 0.8896855715545108,
+          "sensitivity": 0.988313638440948,
+          "hd95_mm": 4.123105625617661,
+          "pred_voxels": 56139,
+          "ref_voxels": 45951
+        },
+        "TC": {
+          "dice": 0.9416549537964652,
+          "sensitivity": 0.9323700106597181,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 16553,
+          "ref_voxels": 16886
+        },
+        "ET": {
+          "dice": 0.8462410961390137,
+          "sensitivity": 0.8558318803340369,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 11144,
+          "ref_voxels": 10897
+        }
+      },
+      "seconds": 6.26,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_377": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9278577487680583,
+          "sensitivity": 0.9726709929674985,
+          "hd95_mm": 2.23606797749979,
+          "pred_voxels": 80773,
+          "ref_voxels": 73658
+        },
+        "TC": {
+          "dice": 0.9405291393461415,
+          "sensitivity": 0.9713960977457852,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 11251,
+          "ref_voxels": 10558
+        },
+        "ET": {
+          "dice": 0.8609737047643843,
+          "sensitivity": 0.9228407981024138,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 8197,
+          "ref_voxels": 7167
+        }
+      },
+      "seconds": 6.1,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_395": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9348507891692075,
+          "sensitivity": 0.9615730067962037,
+          "hd95_mm": 3.7416573867739413,
+          "pred_voxels": 70621,
+          "ref_voxels": 66802
+        },
+        "TC": {
+          "dice": 0.9315546754904771,
+          "sensitivity": 0.9746483480536474,
+          "hd95_mm": 2.8284271247461903,
+          "pred_voxels": 40078,
+          "ref_voxels": 36684
+        },
+        "ET": {
+          "dice": 0.8936726859092848,
+          "sensitivity": 0.8973985550701048,
+          "hd95_mm": 3.0,
+          "pred_voxels": 35311,
+          "ref_voxels": 35019
+        }
+      },
+      "seconds": 6.12,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_397": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9324212317791506,
+          "sensitivity": 0.9676464853830009,
+          "hd95_mm": 4.123105625617661,
+          "pred_voxels": 93781,
+          "ref_voxels": 87193
+        },
+        "TC": {
+          "dice": 0.9511384706667656,
+          "sensitivity": 0.9726208172799806,
+          "hd95_mm": 1.7320508075688772,
+          "pred_voxels": 68904,
+          "ref_voxels": 65926
+        },
+        "ET": {
+          "dice": 0.8810150250417362,
+          "sensitivity": 0.9074975925161646,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 38530,
+          "ref_voxels": 36345
+        }
+      },
+      "seconds": 6.28,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_413": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9330279772220846,
+          "sensitivity": 0.9691086180847986,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 33515,
+          "ref_voxels": 31109
+        },
+        "TC": {
+          "dice": 0.9455096955909436,
+          "sensitivity": 0.9125888749477207,
+          "hd95_mm": 1.0,
+          "pred_voxels": 4449,
+          "ref_voxels": 4782
+        },
+        "ET": {
+          "dice": 0.9225501770956317,
+          "sensitivity": 0.8801531876548773,
+          "hd95_mm": 1.0,
+          "pred_voxels": 4031,
+          "ref_voxels": 4439
+        }
+      },
+      "seconds": 6.16,
+      "device": "cuda roi=(240, 240, 160)"
+    },
+    "BRATS_433": {
+      "metrics": {
+        "WT": {
+          "dice": 0.9394649530092131,
+          "sensitivity": 0.9677788484702481,
+          "hd95_mm": 6.782329983125268,
+          "pred_voxels": 105629,
+          "ref_voxels": 99624
+        },
+        "TC": {
+          "dice": 0.9721664607782582,
+          "sensitivity": 0.9687011155276317,
+          "hd95_mm": 1.4142135623730951,
+          "pred_voxels": 77434,
+          "ref_voxels": 77990
+        },
+        "ET": {
+          "dice": 0.908619749045281,
+          "sensitivity": 0.8601900630100197,
+          "hd95_mm": 1.0,
+          "pred_voxels": 34596,
+          "ref_voxels": 38724
+        }
+      },
+      "seconds": 6.18,
+      "device": "cuda roi=(240, 240, 160)"
+    }
+  },
+  "metric_definitions": {
+    "dice": "2|P\u2229R|/(|P|+|R|); 1.0 when both empty",
+    "sensitivity": "|P\u2229R|/|R|; undefined (excluded from mean) when the reference region is empty",
+    "hd95_mm": "max of the two directed 95th-percentile surface distances, in mm; undefined if exactly one is empty"
+  },
+  "model": {
+    "name": "MONAI brats_mri_segmentation (SegResNet)",
+    "version": "0.5.4",
+    "licence": "Apache-2.0 (MONAI Consortium)",
+    "training_data": "BraTS 2018 (285 cases; bundle authors' own split)",
+    "source": "https://huggingface.co/MONAI/brats_mri_segmentation"
+  },
+  "preprocessing": "Stack sequences as [T1Gd, T1, T2, FLAIR]; reorient to RAS; resample to 1 mm isotropic (bilinear); z-score intensity normalisation per channel over non-zero voxels; sliding-window inference with AMP; sigmoid; invert resampling/orientation back to the input grid (bilinear on probabilities); threshold 0.5; TC/WT/ET channels -> BraTS codes (ET=4, TC without ET=1, WT without TC=2). Uncertainty: 3 extra passes on the input mirrored along each axis (label map from the plain pass).",
+  "code_commit": "db28f88841d639b391be0fc5f42e00a5444b1bfb",
+  "overlap_disclosure": "We did not train or fine-tune the model, so none of these cases were used by us for training or tuning. However, the pretrained MONAI model was trained on BraTS 2018, and Decathlon Task01 is built from BraTS 2016 and 2017 cases, which BraTS 2018 largely re-uses. Decathlon renamed the cases, so we cannot tell which evaluation cases the model saw during its training; most probably overlap. These metrics are therefore likely optimistic and are not an independent held-out estimate.",
+  "split_note": "Patient-wise split: Decathlon Task01 provides one multi-sequence study per subject (BRATS_xxx), so each case ID is one patient. Evaluation cases were sampled at random (fixed seed) from the labelled training list. Our training/fine-tuning set is empty (pretrained model used as-is). Judge-provided cases are never used for training or tuning and uploads are deleted within 24 h."
+}

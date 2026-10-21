@@ -1,0 +1,19 @@
+# Install PyTorch first with the CUDA wheel matching your driver, e.g.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu126
+# Exact versions used in development: requirements-lock.txt
+monai[nibabel]>=1.4
+nibabel>=5.2
+numpy
+scipy
+scikit-image
+matplotlib
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic>=2
+reportlab
+requests
+huggingface_hub
+tqdm
+pytest
+httpx

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analyse a study · Voxels</title>
+  <meta name="description" content="Research and teaching prototype: suspected tumour regions predicted by a pretrained model on brain MRI, estimated volumes, 3D and linked-slice viewer.">
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="safety" role="note">
+    <span>Research &amp; teaching prototype</span><span>Not a diagnosis</span><span>Not clinically validated</span><span>Uploads deleted within 24 h</span>
+  </div>
+
+  <header class="nav">
+    <a class="wordmark" href="/">Vox<em>els</em></a>
+    <ul>
+      <li><a href="/analyse" aria-current="page">Analyse</a></li>
+      <li><a href="/#method">Method</a></li>
+      <li><a href="/#evaluation">Evaluation</a></li>
+      <li><a href="/#limits">Limits</a></li>
+      <li><a href="/#privacy">Privacy</a></li>
+    </ul>
+    <span class="status mono" id="status"><i class="dot"></i>checking…</span>
+  </header>
+
+  <main class="page-analyse">
+    <section id="analyse" class="block">
+      <header class="block-head">
+        <span class="num">01</span>
+        <h2>Analyse a study</h2>
+        <p>One 4-channel NIfTI, <em>or</em> the four sequences (T1, T1Gd, T2, FLAIR) as separate files. Optionally add an expert mask (BraTS codes 1/2/4) to compare against.</p>
+      </header>
+
+      <div class="analyse-main">
+        <label class="drop" id="drop">
+          <input type="file" id="file-input" multiple accept=".nii,.gz,.nii.gz" aria-label="Choose study files">
+          <span class="drop-icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/><g class="arrow"><path d="M12 15V4"/><path d="M7.5 8.5 12 4l4.5 4.5"/></g>
+            </svg>
+          </span>
+          <span class="drop-big"><span class="when-idle">Drag &amp; drop your MRI study here</span><span class="when-over">Release to add the files</span></span>
+          <span class="drop-or">or <span class="drop-browse">browse your computer</span></span>
+          <span class="drop-types"><span class="chip">.nii</span><span class="chip">.nii.gz</span><span class="chip">≤ 1 GB each</span></span>
+          <span class="drop-small">
+            <b>One file</b> with the four sequences stacked (X × Y × Z × 4), <b>or four files</b> named
+            *_t1, *_t1ce, *_t2, *_flair. An expert mask (*_seg) is optional.
+          </span>
+        </label>
+
+        <div id="manifest" class="manifest" hidden></div>
+        <p id="hint" class="hint" hidden></p>
+
+        <div class="run-row">
+          <button class="btn" id="run" disabled>Run analysis <span class="arr">→</span></button>
+          <button class="btn ghost" id="clear" hidden>Clear</button>
+          <span class="run-note">Invalid input is refused with a reason and never reaches the model.</span>
+        </div>
+        <div id="error" class="error" role="alert" hidden></div>
+
+        <div class="log" id="log" hidden>
+          <p class="eyebrow">Last run</p>
+          <ol id="steps" class="steps">
+            <li data-step="upload"><span>Upload</span><time></time></li>
+            <li data-step="checks"><span>Structural &amp; suitability checks</span><time></time></li>
+            <li data-step="segment"><span>Segmentation (SegResNet)</span><time></time></li>
+            <li data-step="finish"><span>Volumes, surfaces, report</span><time></time></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="four-files" id="four-files">
+        <header class="four-head">
+          <p class="eyebrow">Or: four separate files</p>
+          <h3>One file per sequence</h3>
+          <p>Use this when T1, T1Gd, T2 and FLAIR are stored as separate 3D NIfTI files on the same grid. Put each file in
+            its slot; the expert mask is optional. The same checks run as above, and any problem opens a pop-up.</p>
+        </header>
+        <div class="slots" id="slots">
+          <div class="slot" data-role="T1">
+            <label class="slot-pick">
+              <span class="slot-icon" aria-hidden="true"></span>
+              <span class="slot-name">T1</span>
+              <span class="slot-note">native T1-weighted</span>
+              <span class="slot-file"></span>
+              <span class="slot-meta mono"></span>
+              <input type="file" accept=".nii,.gz,.nii.gz" aria-label="Choose the T1 file">
+            </label>
+            <button class="slot-remove" type="button" aria-label="Remove the T1 file" hidden>×</button>
+          </div>
+          <div class="slot" data-role="T1Gd">
+            <label class="slot-pick">
+              <span class="slot-icon" aria-hidden="true"></span>
+              <span class="slot-name">T1Gd</span>
+              <span class="slot-note">contrast-enhanced T1 (t1ce)</span>
+              <span class="slot-file"></span>
+              <span class="slot-meta mono"></span>
+              <input type="file" accept=".nii,.gz,.nii.gz" aria-label="Choose the T1Gd file">
+            </label>
+            <button class="slot-remove" type="button" aria-label="Remove the T1Gd file" hidden>×</button>
+          </div>
+          <div class="slot" data-role="T2">
+            <label class="slot-pick">
+              <span class="slot-icon" aria-hidden="true"></span>
+              <span class="slot-name">T2</span>
+              <span class="slot-note">T2-weighted</span>
+              <span class="slot-file"></span>
+              <span class="slot-meta mono"></span>
+              <input type="file" accept=".nii,.gz,.nii.gz" aria-label="Choose the T2 file">
+            </label>
+            <button class="slot-remove" type="button" aria-label="Remove the T2 file" hidden>×</button>
+          </div>
+          <div class="slot" data-role="FLAIR">
+            <label class="slot-pick">
+              <span class="slot-icon" aria-hidden="true"></span>
+              <span class="slot-name">FLAIR</span>
+              <span class="slot-note">T2-FLAIR</span>
+              <span class="slot-file"></span>
+              <span class="slot-meta mono"></span>
+              <input type="file" accept=".nii,.gz,.nii.gz" aria-label="Choose the FLAIR file">
+            </label>
+            <button class="slot-remove" type="button" aria-label="Remove the FLAIR file" hidden>×</button>
+          </div>
+          <div class="slot" data-role="expert">
+            <label class="slot-pick">
+              <span class="slot-icon" aria-hidden="true"></span>
+              <span class="slot-name">Expert mask</span>
+              <span class="slot-note">optional · BraTS codes 1/2/4</span>
+              <span class="slot-file"></span>
+              <span class="slot-meta mono"></span>
+              <input type="file" accept=".nii,.gz,.nii.gz" aria-label="Choose the Expert mask file">
+            </label>
+            <button class="slot-remove" type="button" aria-label="Remove the Expert mask file" hidden>×</button>
+          </div>
+        </div>
+        <p id="four-hint" class="hint" hidden></p>
+        <div class="run-row">
+          <button class="btn" id="four-run" disabled>Run analysis on these four <span class="arr">→</span></button>
+          <button class="btn ghost" id="four-clear" hidden>Clear</button>
+        </div>
+      </div>
+
+      <div id="result" class="result" hidden></div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div>
+      <a class="wordmark" href="/">Vox<em>els</em></a>
+      <p id="disclaimer-full">Research and teaching prototype. Outputs are suspected tumour regions predicted by the model and estimated volumes. Not a diagnosis; not clinically validated; not for clinical use.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Model</p>
+      <p>MONAI <span class="mono">brats_mri_segmentation</span> v0.5.4, SegResNet (Myronenko, 2018). Apache-2.0.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Data</p>
+      <p>Medical Segmentation Decathlon (Antonelli et al., 2022), derived from BraTS (Menze et al., 2015; Bakas et al., 2017, 2018). Public, de-identified.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Elsewhere</p>
+      <p><a href="/docs">API docs</a> · <a href="/backup">Precomputed sample</a></p>
+    </div>
+  </footer>
+
+  <dialog id="alert-dialog" class="alert-dialog" aria-labelledby="alert-title" aria-describedby="alert-list">
+    <p class="alert-kind" id="alert-kind">Input refused</p>
+    <h3 id="alert-title"></h3>
+    <p class="alert-code mono" id="alert-code"></p>
+    <ul id="alert-list" class="alert-list"></ul>
+    <p class="alert-note" id="alert-note"></p>
+    <div class="alert-actions">
+      <button class="btn" id="alert-continue" hidden>Continue anyway <span class="arr">→</span></button>
+      <button class="btn ghost" id="alert-close">Close</button>
+    </div>
+  </dialog>
+
+  <div class="loader" id="loader" hidden role="dialog" aria-modal="true" aria-labelledby="loader-stage">
+    <div class="loader-inner">
+      <div class="loader-stage-box">
+        <canvas id="loader-canvas" aria-hidden="true"></canvas>
+        <span class="loader-pct mono" id="loader-pct">0%</span>
+      </div>
+      <p class="eyebrow loader-eyebrow">Analysing your study</p>
+      <h2 class="loader-stage" id="loader-stage" aria-live="polite">Uploading the files</h2>
+      <div class="loader-bar" aria-hidden="true"><i id="loader-bar"></i></div>
+      <ol class="loader-steps" id="loader-steps">
+        <li data-step="upload"><span>Upload</span><time></time></li>
+        <li data-step="checks"><span>Checks</span><time></time></li>
+        <li data-step="segment"><span>Segmentation</span><time></time></li>
+        <li data-step="finish"><span>Volumes &amp; surfaces</span><time></time></li>
+      </ol>
+      <p class="loader-note">The brain is an illustration that builds up as the run progresses. It is not your scan.</p>
+    </div>
+  </div>
+
+  <script src="/static/app.js" type="module"></script>
+</body>
+</html>

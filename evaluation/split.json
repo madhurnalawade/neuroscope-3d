@@ -1,0 +1,28 @@
+{
+  "evaluation_cases": [
+    "BRATS_013",
+    "BRATS_038",
+    "BRATS_048",
+    "BRATS_084",
+    "BRATS_086",
+    "BRATS_145",
+    "BRATS_169",
+    "BRATS_172",
+    "BRATS_175",
+    "BRATS_220",
+    "BRATS_300",
+    "BRATS_305",
+    "BRATS_315",
+    "BRATS_337",
+    "BRATS_346",
+    "BRATS_377",
+    "BRATS_395",
+    "BRATS_397",
+    "BRATS_413",
+    "BRATS_433"
+  ],
+  "training_or_tuning_cases_used_by_us": [],
+  "model_pretraining_data": "BraTS 2018 (285 cases; bundle authors' own split)",
+  "note": "Patient-wise split: Decathlon Task01 provides one multi-sequence study per subject (BRATS_xxx), so each case ID is one patient. Evaluation cases were sampled at random (fixed seed) from the labelled training list. Our training/fine-tuning set is empty (pretrained model used as-is). Judge-provided cases are never used for training or tuning and uploads are deleted within 24 h.",
+  "overlap_disclosure": "We did not train or fine-tune the model, so none of these cases were used by us for training or tuning. However, the pretrained MONAI model was trained on BraTS 2018, and Decathlon Task01 is built from BraTS 2016 and 2017 cases, which BraTS 2018 largely re-uses. Decathlon renamed the cases, so we cannot tell which evaluation cases the model saw during its training; most probably overlap. These metrics are therefore likely optimistic and are not an independent held-out estimate."
+}

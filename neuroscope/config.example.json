@@ -1,0 +1,6 @@
+{
+  "dataset_root": "<DATASET_ROOT>",
+  "uploads_root": "<UPLOADS_ROOT>",
+  "output_dir": "<OUTPUT_DIR>",
+  "retention_hours": 24
+}

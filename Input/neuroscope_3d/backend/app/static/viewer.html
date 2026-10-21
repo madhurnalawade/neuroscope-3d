@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voxels Viewer</title>
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/viewer.css">
+  <script type="importmap">{ "imports": { "three": "/static/vendor/three.module.js" } }</script>
+</head>
+<body>
+  <div class="safety" role="note">
+    <span>Research &amp; teaching prototype</span><span>Suspected regions predicted by the model</span><span>Not a diagnosis</span><span>Not clinically validated</span>
+  </div>
+  <header class="nav dark">
+    <a class="wordmark" href="/">Vox<em>els</em></a>
+    <ul>
+      <li><a id="lnk-report" target="_blank">Report</a></li>
+      <li><a id="lnk-pdf" target="_blank">PDF</a></li>
+      <li><a id="lnk-nifti">Label map</a></li>
+      <li><a href="/analyse">New study</a></li>
+    </ul>
+    <span id="study" class="study"></span>
+  </header>
+  <div class="backup" id="backup" hidden></div>
+  <div class="warnings" id="warnings" hidden></div>
+  <div class="status" id="status">Loading study…</div>
+
+  <main class="layout">
+    <section class="views">
+      <div class="panel" id="panel-3d">
+        <div class="ptitle">3D (world mm) <span class="hint">drag rotate · wheel zoom · right-drag pan · click surface to set crosshair</span></div>
+        <div class="canvas3d" id="view3d"></div>
+        <button class="small" id="reset-cam">Reset view</button>
+      </div>
+      <div class="panel slice" data-view="axial"><div class="ptitle">Axial <span class="idx"></span></div><div class="sbox"></div></div>
+      <div class="panel slice" data-view="coronal"><div class="ptitle">Coronal <span class="idx"></span></div><div class="sbox"></div></div>
+      <div class="panel slice" data-view="sagittal"><div class="ptitle">Sagittal <span class="idx"></span></div><div class="sbox"></div></div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Crosshair</h2>
+        <table class="kv">
+          <tr><td>Voxel (uploaded grid)</td><td id="c-vox" class="mono"></td></tr>
+          <tr><td>World (mm)</td><td id="c-world" class="mono"></td></tr>
+          <tr><td>Model label</td><td id="c-pred"></td></tr>
+          <tr id="c-expert-row" hidden><td>Expert label</td><td id="c-expert"></td></tr>
+          <tr><td>Intensity</td><td id="c-int" class="mono"></td></tr>
+        </table>
+        <button class="small" id="goto-lesion">Centre on predicted region</button>
+      </div>
+
+      <div class="card">
+        <h2>3D layers</h2>
+        <div id="layers"></div>
+        <button class="small" id="stl-visible" type="button">Download STL for 3D printing</button>
+        <p class="muted small">The ticked layers as one STL file in millimetres (1:1 scale; resize in your slicer).
+          Tumour surfaces sit inside the brain surface, so in a combined print they are hidden inside it. Use a
+          layer's own STL link to print a region as a separate part.</p>
+      </div>
+
+      <div class="card">
+        <h2>Slices</h2>
+        <label class="row">Background
+          <select id="bg-seq"><option value="flair">FLAIR</option><option value="t1gd">T1Gd</option><option value="t1">T1</option><option value="t2">T2</option></select>
+        </label>
+        <label class="row">Overlay
+          <select id="overlay">
+            <option value="pred">Model prediction</option>
+            <option value="expert" disabled>Expert mask</option>
+            <option value="agree-WT" disabled>Agreement — WT</option>
+            <option value="agree-TC" disabled>Agreement — TC</option>
+            <option value="agree-ET" disabled>Agreement — ET</option>
+            <option value="uncert" disabled>Uncertainty (TTA, WT)</option>
+            <option value="none">None</option>
+          </select>
+        </label>
+        <label class="row">Overlay opacity <input type="range" id="ov-alpha" min="0" max="1" step="0.05" value="0.5"></label>
+        <div class="row labels" id="label-toggles">
+          <label><input type="checkbox" data-code="1" checked><i style="background:#d6452c"></i>NCR 1</label>
+          <label><input type="checkbox" data-code="2" checked><i style="background:#78a870"></i>ED 2</label>
+          <label><input type="checkbox" data-code="4" checked><i style="background:#e8b030"></i>ET 4</label>
+        </div>
+        <div class="legend" id="agree-legend" hidden>
+          <span><i style="background:#78a870"></i>both</span><span><i style="background:#d6452c"></i>model only</span><span><i style="background:#6fa3b5"></i>expert only</span>
+        </div>
+        <div class="legend" id="uncert-legend" hidden>
+          <span><i style="background:#78a870"></i>4/4</span><span><i style="background:#e2d6a0"></i>3/4</span><span><i style="background:#e8b030"></i>2/4</span><span><i style="background:#d6452c"></i>1/4 passes call it WT</span>
+        </div>
+      </div>
+
+      <div class="card" id="trust-card">
+        <h2>How much to trust it</h2>
+        <div id="trust" class="small"></div>
+        <button class="small" id="run-ablation">Run modality ablation</button>
+        <div id="ablation" class="small"></div>
+      </div>
+
+      <div class="card" id="expert-input-card">
+        <h2>Expert comparison (optional)</h2>
+        <p class="small"><b>Upload expert mask</b></p>
+        <p class="muted small">Expert-drawn NIfTI (.nii / .nii.gz) on the same grid, orientation and spacing as the MRI;
+          BraTS codes 0/1/2/4. Gives Dice, sensitivity, precision, IoU and HD95 for WT, TC and ET.</p>
+        <input type="file" id="expert-file" accept=".nii,.gz">
+        <button class="small" id="expert-remove" type="button" hidden>Remove expert mask</button>
+        <div id="expert-msg" class="small" role="status"></div>
+
+        <p class="small" style="margin-top:16px"><b>Enter doctor's readings</b></p>
+        <p class="muted small">Tumour volumes in mL from a doctor's reading. Compared by volume difference only;
+          overlap scores need a mask.</p>
+        <form id="readings-form" class="readings" novalidate>
+          <label>WT <input type="number" name="WT" min="0" max="2000" step="0.01" inputmode="decimal" placeholder="mL"></label>
+          <label>TC <input type="number" name="TC" min="0" max="2000" step="0.01" inputmode="decimal" placeholder="mL"></label>
+          <label>ET <input type="number" name="ET" min="0" max="2000" step="0.01" inputmode="decimal" placeholder="mL"></label>
+          <div class="readings-actions">
+            <button class="small" type="submit">Compare volumes</button>
+            <button class="small" type="button" id="readings-clear" hidden>Remove readings</button>
+          </div>
+        </form>
+        <div id="readings-msg" class="small" role="status"></div>
+      </div>
+    </aside>
+  </main>
+
+  <section class="card wide" id="gallery-card">
+    <div class="ghead">
+      <h2>All slices</h2>
+      <label>View <select id="g-axis"><option value="axial">Axial</option><option value="coronal">Coronal</option><option value="sagittal">Sagittal</option></select></label>
+      <label>Show <select id="g-filter"><option value="all">every slice</option><option value="region">only slices with the predicted region</option></select></label>
+      <label>Size <select id="g-size"><option value="104">small</option><option value="170">medium</option><option value="260">large</option></select></label>
+      <span id="g-count" class="muted small"></span>
+    </div>
+    <p class="muted small">Same background and overlay as the views above; the number under each image is the slice and the
+      area of the suspected tumour region predicted by the model in that slice. Click any slice to open it large; the views and the 3D crosshair follow the slice you are on. Inside, zoom with the wheel or + / − and step with ← →.</p>
+    <div class="gallery" id="gallery" aria-label="All slices"></div>
+  </section>
+  <section class="card wide" id="expert-card">
+    <h2>Expert comparison <span class="scope">this case only</span></h2>
+    <p class="muted small">Compares the model with a reference you supply for this study. This is separate from the
+      20-case benchmark on the home page, which measures the model on other, labelled cases.</p>
+    <div id="expert-results"></div>
+  </section>
+  <section class="card wide">
+    <h2>Estimated volumes</h2>
+    <p id="formula" class="formula"></p>
+    <div class="tablewrap"><table id="vol-table" class="grid"></table></div>
+    <div id="agreement"></div>
+  </section>
+
+  <footer class="foot"><span id="disclaimer">Research and teaching prototype. Outputs are suspected tumour regions predicted by the model and estimated volumes. Not a diagnosis; not clinically validated; not for clinical use.</span> Use only public, de-identified research data. Uploads are deleted automatically within 24 hours.</footer>
+
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lb-title">
+    <div class="lb-head">
+      <span id="lb-title" class="mono"></span>
+      <span class="lb-actions"><button type="button" id="lb-out" aria-label="Zoom out">−</button><span id="lb-zoom" class="mono lb-zoom">100%</span><button type="button" id="lb-in" aria-label="Zoom in">+</button><button type="button" id="lb-fit">Fit</button><button type="button" id="lb-goto">Show in the views</button><button type="button" id="lb-close">Close ✕</button></span>
+    </div>
+    <div class="lb-body">
+      <button type="button" class="lb-nav" data-d="-1" aria-label="Previous slice">‹</button>
+      <div class="lb-frame"><div class="lb-stack" id="lb-stack">
+        <canvas id="lb-canvas"></canvas>
+        <span class="olabel l" id="lb-l"></span><span class="olabel r" id="lb-r"></span><span class="olabel t" id="lb-t"></span><span class="olabel b" id="lb-b"></span>
+      </div></div>
+      <button type="button" class="lb-nav" data-d="1" aria-label="Next slice">›</button>
+    </div>
+    <p class="lb-foot">← → or ‹ › step through every slice · wheel, + / − or double-click to zoom, drag to pan · Esc closes · suspected regions predicted by the model, not a diagnosis</p>
+  </dialog>
+
+  <script type="module" src="/static/viewer.js"></script>
+</body>
+</html>

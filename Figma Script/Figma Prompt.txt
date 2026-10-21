@@ -1,0 +1,63 @@
+Design and build a polished, responsive website for a 24-hour hackathon project: a **research and teaching prototype for exploring brain MRI tumour-region segmentation**. The website should feel art-directed by a designer and thoughtfully implemented by a frontend developer—not like a generic AI product template.
+
+## Art direction
+
+Create the feel of a contemporary scientific journal mixed with a precision imaging instrument: editorial, tactile, spatial and technically credible.
+
+Avoid:
+- Navy-blue-and-white healthcare branding.
+- Inter or other default SaaS typography.
+- Purple/blue AI gradients, glowing circuitry, chatbot imagery or generic AI motifs.
+- Rounded cards, pill buttons, floating dashboard tiles or excessive shadows.
+- A stock hospital website or a generic analytics dashboard.
+
+Use a distinctive palette: warm paper or bone, near-black graphite, and a restrained signal colour such as vermilion or acid chartreuse. Use the signal colour for interaction and segmentation highlights, not as decoration everywhere. Pair an expressive editorial display face with a clear technical sans and monospaced type for scan coordinates and measurements. Keep corners square or nearly square, layouts grid-led, and borders thin and intentional. Give the interface generous whitespace, strong typographic hierarchy and precise alignment.
+
+## Landing page
+
+Create a striking first screen with a large headline:
+
+**“See a brain tumour in 3D. Measure it. Know its limits.”**
+
+Supporting copy:
+“Explore model-predicted tumour regions in research MRI scans. Inspect the 3D shape, linked slices, estimated volumes and model performance.”
+
+Place a large, sculptural 3D brain in the hero. It should feel like a carefully lit anatomical object, not a medical stock illustration. Show a restrained, clearly labelled segmentation overlay in a few distinct colours. Include subtle technical annotations, coordinate ticks or fine guide lines around it.
+
+Make the brain the central visual anchor and give it a scroll-linked motion sequence: as the visitor scrolls, the brain should move or rotate subtly and zoom in, then shift to one side to make room for the next section. Use controlled movement and smooth transitions; avoid flashy parallax. If true scroll-linked animation is unavailable, create a convincing scroll-based prototype with distinct visual states and transitions.
+
+Use two clear actions: **“Explore the viewer”** and **“How it works”**. Include a visible, calm safety line near the hero: **“Research and teaching prototype only — not for diagnosis.”**
+
+## Landing page sections
+
+1. **The scan, opened up** — Show how four MRI sequences (T1, T1Gd, T2 and FLAIR) contribute different views of one study. Use a compact, visual explanation rather than a wall of text.
+2. **From voxels to regions** — Explain that the model labels scan voxels and groups them into WT, TC and ET. Make the nested relationship visually clear. Avoid implying that the model’s output is a diagnosis.
+3. **Inspect the result** — Show the linked 3D and slice-view experience.
+4. **Measure, with context** — Explain estimated volume and show that model performance is evaluated against expert-labelled research cases.
+5. **Research boundaries** — Clearly state that the tool is for teaching and research, uses public de-identified research data, and does not provide diagnosis or treatment guidance.
+
+## Viewer experience
+
+Design a practical, high-quality MRI viewer screen that feels like a real imaging tool—not a landing-page mockup. Use a dark graphite workspace to make scan images readable, but keep the wider site’s warm paper and signal-colour identity.
+
+Include:
+- A clear upload area for four NIfTI files: T1, T1Gd, T2 and FLAIR.
+- A status area for validation results, with understandable messages for missing, unreadable or mismatched files.
+- One prominent 3D brain view with controls to rotate, zoom, show or hide each region, and adjust opacity.
+- Three linked MRI slice views: axial, coronal and sagittal.
+- A shared crosshair, visible L/R, A/P and S/I orientation labels, and voxel plus millimetre coordinates.
+- Region controls and estimated volumes for WT, TC and ET.
+- A compact model-performance panel showing Dice and sensitivity, clearly identified as evaluation results from held-out labelled research cases.
+- A visible model/provenance area for model name and version, preprocessing, input file hashes and run time.
+- A report export action.
+- A persistent disclaimer: **“Research and teaching prototype only. Model-predicted regions are not a diagnosis.”**
+
+Keep the working area information-dense but orderly: align controls to a consistent grid, use fine dividers, and reserve stronger colour for selected regions and important states. Make labels, units and orientation cues easy to find.
+
+## Interaction and responsive behavior
+
+Create a clickable prototype with a clear path from landing page to upload, then to the viewer. Include hover, selected, loading, validation-error and completed-prediction states. Demonstrate the hero brain’s scroll-linked motion.
+
+Design responsive desktop and mobile layouts. On mobile, keep the hero brain visible, stack content in a deliberate reading order, and make the viewer controls usable without shrinking scan views into tiny panels. Maintain strong contrast, keyboard-visible focus states and readable type sizes.
+
+Use realistic placeholder research data and mark it as sample data. Do not use real patient information or make clinical claims. Prioritize visual clarity, honest language and an original visual identity.

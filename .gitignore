@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.py[cod]
+data/
+outputs/
+dataset/
+models/**/*.pt
+models/**/*.pth
+models/**/*.ts
+._*
+.env
+.idea/
+.vscode/
+node_modules/
+demo_cases/
+backup_case/
+# test caches and local upload folders: never commit scans or anything derived from uploads
+.pytest_cache/
+uploads/
+neuroscope_uploads/
+*.nii
+*.nii.gz
