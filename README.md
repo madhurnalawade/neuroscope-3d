@@ -19,7 +19,13 @@ evidence*. Agreement with an expert mask is colour-coded, with Dice, sensitivity
 
 ## Quick start
 
+Requirements: Python 3.11 (on Windows the `py` launcher with 3.11 installed), git, and about 4 GB of free disk for
+PyTorch and the model. An NVIDIA GPU is used if present (CUDA 12.6 wheels); otherwise inference runs on the CPU.
+
 ```bash
+git clone https://github.com/madhurnalawade/neuroscope-3d.git
+cd neuroscope-3d
+
 # one-time setup (creates .venv, installs PyTorch + requirements, downloads the model weights)
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1      # Windows
 bash scripts/setup.sh                                           # Linux / macOS
@@ -29,6 +35,27 @@ bash scripts/setup.sh                                           # Linux / macOS
 ```
 
 Open http://localhost:8000/ (API docs: http://localhost:8000/docs). `run.py` downloads the weights itself if missing.
+It listens on all network interfaces by default; add `--host 127.0.0.1` to keep it to this computer.
+
+Every `python` command below means the project's environment: run it as `.venv/Scripts/python` (Linux:
+`.venv/bin/python`), or activate the environment first (`.venv\Scripts\Activate.ps1` / `source .venv/bin/activate`).
+
+### Getting a test case
+
+MRI data is not in the repository. Download the Medical Segmentation Decathlon brain tumour task (7.6 GB, CC BY-SA 4.0)
+and split one case into four files plus an expert mask (in Windows PowerShell type `curl.exe`, not `curl`):
+
+```bash
+mkdir data
+curl -L -o data/Task01_BrainTumour.tar https://msd-for-monai.s3-us-west-2.amazonaws.com/Task01_BrainTumour.tar
+tar -xf data/Task01_BrainTumour.tar -C data
+python scripts/prepare_demo_case.py data/Task01_BrainTumour BRATS_002 demo_cases
+```
+
+Upload `demo_cases/BRATS_002/BRATS_002_{t1,t1ce,t2,flair}.nii.gz` on the home page (optionally with
+`BRATS_002_seg.nii.gz` as the expert mask), or upload `data/Task01_BrainTumour/imagesTr/BRATS_002.nii.gz` as one
+4-channel file. In the viewer, **3D layers → Download STL for 3D printing** saves the brain and predicted regions
+as an STL file in millimetres.
 
 ## Judge checks — command and endpoints
 
@@ -121,7 +148,8 @@ cd Input/neuroscope_3d/backend && ../../../.venv/Scripts/python -m pytest -q tes
 
 Covers the judges' failure pack (fake / corrupt / 2D / constant / NaN / oversized / mismatched / missing files),
 upload → inference → NIfTI on RAS and LPS anisotropic grids, the single-call endpoint, suitability refusal,
-expert-mask validation, viewer data, and HTML/PDF reports.
+expert-mask validation, viewer data, STL export, and HTML/PDF reports. The 3 backup-case tests are skipped until a
+backup case exists (`python scripts/make_backup_case.py demo_cases/BRATS_002`, after "Getting a test case").
 
 ## Limitations
 
