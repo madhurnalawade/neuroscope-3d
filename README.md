@@ -151,3 +151,7 @@ is derived from **BraTS** 2016/2017; the model was trained on **BraTS 2018**.
   (CC BY 4.0, TCIA) — the judges' development and test cases use BraTS 2021 conventions (labels 1/2/4).
 - Medical Segmentation Decathlon data: CC BY-SA 4.0. The landing-page sweep image (`app/static/hero/plate.jpg`) is
   rendered from Decathlon case BRATS_001 with this project's prediction.
+
+## Credits
+
+Built with **Tanishq Kadoo** ([@Lord-TQ](https://github.com/Lord-TQ)), who co-authored this project.
