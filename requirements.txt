@@ -7,6 +7,14 @@ numpy
 scipy
 scikit-image
 matplotlib
+# print export (scripts/export_print_model.py): meshes, booleans, repair, 3MF reload, fast ray casts
+trimesh
+manifold3d
+pymeshlab
+shapely
+rtree
+lxml
+embreex
 fastapi
 uvicorn[standard]
 python-multipart
