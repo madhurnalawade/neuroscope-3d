@@ -261,7 +261,9 @@ def volume_bytes(study: ValidatedStudy, name: str) -> bytes:
 
 # ---------------------------------------------------------------- meshes
 
-def _mesh(mask: np.ndarray, canon_affine: np.ndarray, sigma: float, step: int) -> Optional[Dict[str, str]]:
+def _surface(mask: np.ndarray, canon_affine: np.ndarray, sigma: float, step: int):
+    """Closed iso-surface of a canonical-order mask as (world-mm vertices, faces), or None if too small.
+    Shared by the viewer meshes and the print export (app/services/print_export.py)."""
     if mask.sum() < 8:
         return None
     field = gaussian_filter(np.pad(mask.astype(np.float32), 2), sigma)
@@ -269,7 +271,14 @@ def _mesh(mask: np.ndarray, canon_affine: np.ndarray, sigma: float, step: int) -
         return None
     verts, faces, _, _ = marching_cubes(field, level=0.5, step_size=step, allow_degenerate=False)
     verts -= 2  # undo padding
-    world = (np.c_[verts, np.ones(len(verts))] @ canon_affine.T)[:, :3].astype(np.float32)
+    return (np.c_[verts, np.ones(len(verts))] @ canon_affine.T)[:, :3], faces
+
+
+def _mesh(mask: np.ndarray, canon_affine: np.ndarray, sigma: float, step: int) -> Optional[Dict[str, str]]:
+    surf = _surface(mask, canon_affine, sigma, step)
+    if surf is None:
+        return None
+    world, faces = surf[0].astype(np.float32), surf[1]
     return {
         "vertices": base64.b64encode(world.tobytes()).decode(),
         "faces": base64.b64encode(faces.astype(np.uint32).tobytes()).decode(),
@@ -278,13 +287,18 @@ def _mesh(mask: np.ndarray, canon_affine: np.ndarray, sigma: float, step: int) -
     }
 
 
+def brain_mask(study: ValidatedStudy, ornt) -> np.ndarray:
+    """Voxels non-zero in any sequence (the inputs are skull-stripped), in canonical order."""
+    seqs = [np.asarray(nib.load(study.modalities[m]["path"], mmap=False).dataobj) != 0 for m in SEQUENCE_KEYS.values()]
+    return _reorient(np.logical_or.reduce(seqs).astype(np.uint8), ornt)
+
+
 def meshes(study: ValidatedStudy) -> Dict[str, Any]:
     cache = _cache(study) / "meshes.json"
     if cache.exists():
         return json.loads(cache.read_text(encoding="utf-8"))
     _, ornt, canon_affine = _canonical(study)
-    seqs = [np.asarray(nib.load(study.modalities[m]["path"], mmap=False).dataobj) != 0 for m in SEQUENCE_KEYS.values()]
-    brain = _reorient(np.logical_or.reduce(seqs).astype(np.uint8), ornt)
+    brain = brain_mask(study, ornt)
     out = {"brain": {**MESH_STYLE["brain"], "source": "brain", **(_mesh(brain, canon_affine, 1.5, 2) or {})}}
     for source in ("pred", "expert"):
         lab = _labels(study, source)
